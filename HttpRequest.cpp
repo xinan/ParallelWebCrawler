@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <cerrno>
 #include <cassert>
+#include <cstring>
 #include "HttpRequest.h"
 
 
