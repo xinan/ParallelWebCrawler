@@ -59,7 +59,7 @@ void WebCrawler::start() {
                     return;
                 }
 
-                fprintf(stderr, "Crawling %s\n", link.getUrl().c_str());
+                fprintf(stderr, "[%3lu%%] Crawling %s\n", this->results_.size() * 100 / this->target_amount_, link.getUrl().c_str());
             }  // Release lock.
 
             try {
