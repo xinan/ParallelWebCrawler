@@ -31,6 +31,7 @@ void WebCrawler::start() {
     auto crawl_job = [this](const std::string& hostname, const std::unordered_set<Link>& links) {
         assert(links.begin() != links.end());
 
+        // Set host and port from the first link and try to open the connection.
         Link first_link = *links.begin();
         HttpRequest request(first_link.getHost(), first_link.getPort());
         try {
@@ -50,21 +51,31 @@ void WebCrawler::start() {
             {  // Acquire lock.
                 std::unique_lock<std::mutex> lock(this->lock_);
 
+                // Not crawling the same url more than once.
                 if (this->visited_.find(link) != this->visited_.end()) {
                     // Skip a link if we have already visited it.
                     continue;
                 }
 
+                // Stop then target amount achieved.
                 if (this->results_.size() >= this->target_amount_) {
                     return;
                 }
 
+                // Add candidate into visited set.
+                this->visited_.insert(link);
                 fprintf(stderr, "[%3lu%%] Crawling %s\n", this->results_.size() * 100 / this->target_amount_, link.getUrl().c_str());
             }  // Release lock.
 
             try {
                 // Crawl this page and put all its links into the result buffer.
                 WebPage page = request.get(link.getPath());
+
+                // We only care about response code 2xx.
+                if (page.getResponseCode()[0] != '2') {
+                    continue;
+                }
+
                 for (auto new_link : page.getLinks()) {
                     results[new_link.first].insert(new_link.second.begin(), new_link.second.end());
                 }
@@ -84,14 +95,21 @@ void WebCrawler::start() {
             std::unique_lock<std::mutex> lock(this->lock_);
 
             for (auto result : results) {
+                // We are not interested in crawling this host one more time.
+                if (this->results_.find(result.first) != this->results_.end()) {
+                    continue;
+                }
+
                 if (this->pending_links_.find(result.first) == this->pending_links_.end()) {
                     this->domain_queue_.push(result.first);
                 }
+
                 this->pending_links_[result.first].insert(result.second.cbegin(), result.second.cend());
             }
 
             this->results_[hostname] = response_time;
 
+            // Notify the main thread that their might be new items pending.
             if (results.size() > 0) {
                 this->condition_.notify_all();
             }
@@ -106,7 +124,7 @@ void WebCrawler::start() {
                 break;
             }
 
-            if (domain_queue_.empty()) {
+            while (domain_queue_.empty()) {
                 condition_.wait(lock);
             }
 
@@ -120,6 +138,7 @@ void WebCrawler::start() {
     fprintf(stderr, "[100%%] Crawling done. Shutting down threads...\n");
     pool.stop();
 
+    // Print results.
     for (auto result : results_) {
         printf("http://%s: %llims\n", result.first.c_str(), result.second.count());
     }

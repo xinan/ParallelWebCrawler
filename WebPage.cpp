@@ -15,10 +15,14 @@ WebPage::WebPage(const std::string& url, const std::string& response)
         : url_(url) {
     std::string header;
     size_t found;
+
+    // Split the header and the html.
     if ((found = response.find("\r\n\r\n")) != std::string::npos) {
         header = response.substr(0, found);
         html_ = response.substr(found, std::string::npos);
     }
+
+    // Parse the response code.
     std::sregex_token_iterator code_itr(header.begin(), header.end(), RESPONSE_CODE_RE, 1);
     std::sregex_token_iterator end_itr;
     if (code_itr != end_itr) {

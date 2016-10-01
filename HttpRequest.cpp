@@ -84,6 +84,7 @@ WebPage HttpRequest::get(const std::string& path) {
 
     auto send_time = std::chrono::steady_clock::now();
 
+    // Read the header only, to decide what to do.
     std::string response = readHeader_();
 
     auto receive_time = std::chrono::steady_clock::now();
@@ -98,7 +99,6 @@ WebPage HttpRequest::get(const std::string& path) {
     } else if (std::regex_search(response, matches, CONTENT_LENGTH_RE)) {
         content_length = (size_t) std::stoi(matches[1]);
     } else if (std::regex_search(response, matches, CHUNKED_ENCODING_RE)) {
-        // If there is no content length specified we assume that it uses chunked encoding.
         chunked_encoding = true;
     } else {
         throw std::string("No content length nor chunked encoding.");
@@ -190,9 +190,13 @@ std::string HttpRequest::readLength_(size_t length) {
 
 std::string HttpRequest::constructGetHeader_(const std::string &path) {
     std::string header = "GET " + path + " HTTP/1.1\r\n";
+    // Host is always required for HTTP/1.1.
     header += "Host: " + hostname_ + "\r\n";
+    // I only accept text, don't send me gzip or any other media type.
     header += "Accept: text/html,application/xhtml+xml,application/xml\r\n";
+    // Blame the school if you are unhappy with this crawler.
     header += "User-Agent: Mozilla/5.0 (compatible; Homework/0.1; +https://myaces.nus.edu.sg/cors/jsp/report/ModuleDetailedInfo.jsp?acad_y=2016/2017&sem_c=2&mod_c=CS3103)\r\n";
+    // Use persistent connection.
     header += "Connection: keep-alive\r\n";
     header += "\r\n";
     return header;

@@ -18,6 +18,8 @@ Link::Link(const std::string& url, const std::string& referrer_url) {
         port_ = matches[4].str();
         path_ = matches[5].str();
     } else if (!referrer_url.empty() && std::regex_match(url, matches, PARTIAL_URL_RE)) {
+        // A partial URL is either absolute or relative but does not have a domain name.
+        // So we get infer it from the referrer.
         Link referrer(referrer_url);
         protocol_ = referrer.getProtocol();
         host_ = referrer.getHost();
@@ -31,6 +33,7 @@ Link::Link(const std::string& url, const std::string& referrer_url) {
         throw std::string("Invalid url.");
     }
 
+    // Make protocol and host name both lowercase.
     std::transform(protocol_.cbegin(), protocol_.cend(), protocol_.begin(), ::tolower);
     std::transform(host_.cbegin(), host_.cend(), host_.begin(), ::tolower);
 
