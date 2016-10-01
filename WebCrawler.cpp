@@ -117,7 +117,7 @@ void WebCrawler::start() {
         }  // Release lock.
     }
 
-    fprintf(stderr, "Crawling done. Shutting down threads...\n");
+    fprintf(stderr, "[100%%] Crawling done. Shutting down threads...\n");
     pool.stop();
 
     for (auto result : results_) {
