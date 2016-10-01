@@ -4,7 +4,7 @@
 #include "WebCrawler.h"
 
 void printUsage(char executable[]) {
-    fprintf(stderr, "Usage: ./%s <amount> <file>", executable);
+    fprintf(stderr, "Usage: ./%s <amount> <file>\n", executable);
     exit(EXIT_FAILURE);
 }
 
