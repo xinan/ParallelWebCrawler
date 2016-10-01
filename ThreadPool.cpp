@@ -20,7 +20,7 @@ ThreadPool::ThreadPool(size_t number_of_threads) {
 
                 // If we should stop, we abandon the rest of the task queue and just return.
                 if (should_stop_) {
-                    return;
+                    break;
                 }
 
                 task = std::move(tasks_.front());
@@ -30,6 +30,7 @@ ThreadPool::ThreadPool(size_t number_of_threads) {
             // Execute the task.
             task();
         }
+        condition_.notify_all();
     };
 
     // Create a vector of worker threads.
