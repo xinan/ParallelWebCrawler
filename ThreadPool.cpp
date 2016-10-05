@@ -1,7 +1,7 @@
 //
 // Created by Liu Xinan on 24/9/16.
 //
-// Adapted from https://github.com/progschj/ThreadPool/
+// Modified from https://github.com/progschj/ThreadPool/
 //
 
 #include "ThreadPool.h"

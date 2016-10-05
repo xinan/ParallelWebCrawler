@@ -14,12 +14,12 @@ const std::chrono::microseconds WebCrawler::CRAWLING_DELAY = std::chrono::micros
 
 WebCrawler::WebCrawler(const int target_amount, const std::vector<std::string>& starting_urls)
         : target_amount_(target_amount) {
-    for (auto url : starting_urls) {
-        Link link(url);
+    for (const auto& url : starting_urls) {
+        const Link link(url);
         pending_links_[link.getHost()].insert(link.getUrl());
     }
 
-    for (auto entry : pending_links_) {
+    for (const auto& entry : pending_links_) {
         domain_queue_.push(entry.first);
     }
 }
@@ -28,11 +28,11 @@ void WebCrawler::start() {
     fprintf(stderr, "Starting a thread pool of %zu threads.\n", number_of_threads_);
     ThreadPool pool(number_of_threads_);
 
-    auto crawl_job = [this](const std::string& hostname, const std::unordered_set<Link>& links) {
+    const auto crawl_job = [this](const std::string& hostname, const std::unordered_set<Link>& links) {
         assert(links.begin() != links.end());
 
         // Set host and port from the first link and try to open the connection.
-        Link first_link = *links.begin();
+        const Link first_link = *links.begin();
         HttpRequest request(first_link.getHost(), first_link.getPort());
         try {
             request.open();
@@ -42,7 +42,7 @@ void WebCrawler::start() {
 
         std::unordered_map<std::string, std::unordered_set<Link>> results;
 
-        for (auto& link : links) {
+        for (const auto& link : links) {
             if (link.getProtocol() != "http") {
                 // Skip non-http urls.
                 continue;
@@ -69,14 +69,14 @@ void WebCrawler::start() {
 
             try {
                 // Crawl this page and put all its links into the result buffer.
-                WebPage page = request.get(link.getPath());
+                const WebPage page = request.get(link.getPath());
 
                 // We only care about response code 2xx.
                 if (page.getResponseCode()[0] != '2') {
                     continue;
                 }
 
-                for (auto new_link : page.getLinks()) {
+                for (const auto& new_link : page.getLinks()) {
                     results[new_link.first].insert(new_link.second.begin(), new_link.second.end());
                 }
                 std::this_thread::sleep_for(this->CRAWLING_DELAY);
@@ -85,7 +85,7 @@ void WebCrawler::start() {
             }
         }
 
-        auto response_time = request.getAverageResponseTimeMs();
+        const auto response_time = request.getAverageResponseTimeMs();
 
         if (response_time.count() == 0) {
             return;
@@ -94,7 +94,7 @@ void WebCrawler::start() {
         {  // Acquire lock.
             std::unique_lock<std::mutex> lock(this->lock_);
 
-            for (auto result : results) {
+            for (const auto& result : results) {
                 // We are not interested in crawling this host one more time.
                 if (this->results_.find(result.first) != this->results_.end()) {
                     continue;
@@ -128,7 +128,7 @@ void WebCrawler::start() {
                 condition_.wait(lock);
             }
 
-            std::string domain = domain_queue_.front();
+            const std::string domain = domain_queue_.front();
             domain_queue_.pop();
             pool.enqueue(crawl_job, domain, pending_links_[domain]);
             pending_links_.erase(domain);
@@ -139,7 +139,7 @@ void WebCrawler::start() {
     pool.stop();
 
     // Print results.
-    for (auto result : results_) {
+    for (const auto& result : results_) {
         printf("http://%s: %llims\n", result.first.c_str(), result.second.count());
     }
 }

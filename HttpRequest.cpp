@@ -82,12 +82,12 @@ WebPage HttpRequest::get(const std::string& path) {
         write_(request_header);
     }
 
-    auto send_time = std::chrono::steady_clock::now();
+    const auto send_time = std::chrono::steady_clock::now();
 
     // Read the header only, to decide what to do.
     std::string response = readHeader_();
 
-    auto receive_time = std::chrono::steady_clock::now();
+    const auto receive_time = std::chrono::steady_clock::now();
     total_response_time_ += std::chrono::duration_cast<std::chrono::milliseconds>(receive_time - send_time);
 
     bool chunked_encoding = false;
@@ -110,7 +110,7 @@ WebPage HttpRequest::get(const std::string& path) {
         response += readLength_(content_length);
     }
 
-    std::string url = "http://" + hostname_ + path;
+    const std::string url = "http://" + hostname_ + path;
     return WebPage(url, response);
 }
 

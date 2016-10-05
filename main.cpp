@@ -3,17 +3,17 @@
 #include <algorithm>
 #include "WebCrawler.h"
 
-void printUsage(char executable[]) {
+void printUsage(const char* executable) {
     fprintf(stderr, "Usage: ./%s <target amount> <seed file>\n", executable);
     exit(EXIT_FAILURE);
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, const char** argv) {
     if (argc != 3) {
         printUsage(argv[0]);
     }
 
-    int target_amount = atoi(argv[1]);
+    const int target_amount = atoi(argv[1]);
     if (target_amount == 0) {
         printUsage(argv[0]);
     }
@@ -34,10 +34,10 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    auto start = std::chrono::steady_clock::now();
+    const auto start = std::chrono::steady_clock::now();
     WebCrawler crawler(target_amount, seeds);
     crawler.start();
-    auto end = std::chrono::steady_clock::now();
+    const auto end = std::chrono::steady_clock::now();
 
     fprintf(stderr, "\nTime taken: %llims\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
 

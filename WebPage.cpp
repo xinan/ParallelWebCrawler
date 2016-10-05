@@ -50,7 +50,7 @@ void WebPage::parseLinks_() {
         std::string url = *itr;
         try {
             Link link = Link(url, url_);
-            std::string host = link.getHost();
+            const std::string& host = link.getHost();
             links_[host].insert(link);
         } catch (const std::string& e) {
             continue;
