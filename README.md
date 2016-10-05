@@ -28,4 +28,4 @@ make
 * Using const references while I can.
 * Have timeouts for socket connection, as well as read and write.
 * Modularized and object-oriented.
-* Synchronization of threads using C++11 std::mutex and std::condition_variable.
+* Synchronization of threads using C++11 `std::mutex` and `std::condition_variable`.
